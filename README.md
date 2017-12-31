@@ -1,16 +1,17 @@
-# Overview
-This is a free downloader for CNKI, you can search, download papers , journals, conference records in caj/pdf/.. formats (that 
-means you should use [**CAJViewer**](http://www.portablesoft.org/cajviewer-lite/) to open the document).
+# 简介
+命令行知网文章下载工具  
+本仓库Fork自[amyhaber/cnki-downloader](https://github.com/amyhaber/cnki-downloader "amyhaber/cnki-downloader")	 
+并做了以下修改：  
+- 中文化界面
+- 增加多文档下载功能(请使用help查看说明)
+- 默认结果排序修改为"sortbysubject"(然并卵)
+- 添加Dependencies[github.com & gopkg.in]
 
-BTW:
-- *no matter what this project always will die*
-- *star please* :)
-
-# Download
-The Latest Release (2017-3-11 **v0.8-alpha**):
-+ [Windows Portable](https://github.com/amyhaber/cnki-downloader/releases/download/v0.8-alpha/cnki-downloader-windows.zip)
-+ [Linux Portable](https://github.com/amyhaber/cnki-downloader/releases/download/v0.8-alpha/cnki-downloader-linux.zip)
-+ [Mac Portable](https://github.com/amyhaber/cnki-downloader/releases/download/v0.8-alpha/cnki-downloader-darwin.zip)
+# 下载
+The Latest Release (2017-12-31 **v0.8-alpha**):
++ [Windows](https://github.com/hyh19962008/cnki-downloader/files/1594985/cnki-downloader-win.zip)
++ [Linux](https://github.com/hyh19962008/cnki-downloader/files/1594984/cnki-downloader-linux.zip)
++ [Mac](https://github.com/amyhaber/cnki-downloader/releases/download/v0.8-alpha/cnki-downloader-darwin.zip)
 
 # FAQ
 - Q：**为什么不开发/增加XXX功能？**
@@ -33,10 +34,9 @@ The Latest Release (2017-3-11 **v0.8-alpha**):
 
   A： 请使用最新的解压软件，如7zip等
 
-# Usage
-Here is a gif picture, you can follow it, and it's really easy
+# 使用方法
+
 
 ![image](https://github.com/amyhaber/cnki-downloader/blob/master/screenshots/showcase2.gif)
 
-# Future Work
-+ Fix bugs
+
