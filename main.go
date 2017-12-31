@@ -133,33 +133,33 @@ const (
 )
 
 const (
-	OrderByDownloadedTime = int8(1 + iota)
+	OrderBySubject = int8(1 + iota)
 	OrderByRefCount
 	OrderByPublishTime
-	OrderBySubject
+	OrderByDownloadedTime
 )
 
 var (
 	searchFilterHints map[int8]string = map[int8]string{
-		SearchBySubject:  "A subject",
-		SearchByAbstract: "Content of abstract",
-		SearchByAuthor:   "Author's name",
-		SearchByKeyword:  "Just a keyword",
+		SearchBySubject:  "主题",
+		SearchByAbstract: "摘要内容",
+		SearchByAuthor:   "作者",
+		SearchByKeyword:  "关键词",
 	}
 
 	searchRangeHints map[int8]string = map[int8]string{
-		SearchAllDoc:      "All documents",
-		SearchJournal:     "Journals only",
-		SearchDoctorPaper: "Doctor degree paper only",
-		SearchMasterPaper: "Master degree paper only",
-		SearchConference:  "Conferences only",
+		SearchAllDoc:      "所有库",
+		SearchJournal:     "期刊",
+		SearchDoctorPaper: "博士学位论文",
+		SearchMasterPaper: "硕士学位论文",
+		SearchConference:  "会议文献",
 	}
 
 	searchOrderHints map[int8]string = map[int8]string{
-		OrderByDownloadedTime: "Downloaded count",
-		OrderByRefCount:       "Reference count",
-		OrderByPublishTime:    "Publish time",
-		OrderBySubject:        "Subject relative",
+		OrderBySubject:        "主题相关度",
+		OrderByRefCount:       "引用量",
+		OrderByPublishTime:    "发表时间",
+		OrderByDownloadedTime: "下载量",
 	}
 
 	searchFilterDefs map[int8]string = map[int8]string{
@@ -453,7 +453,7 @@ func (c *CNKIDownloader) Search(keyword string, option *searchOption, page int) 
 	)
 
 	if page <= 0 {
-		return nil, fmt.Errorf("Invalid page")
+		return nil, fmt.Errorf("页码无效")
 	}
 
 	//
@@ -486,7 +486,7 @@ func (c *CNKIDownloader) Search(keyword string, option *searchOption, page int) 
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Response : %s", resp.Status)
+		return nil, fmt.Errorf("响应 : %s", resp.Status)
 	}
 
 	//
@@ -512,7 +512,7 @@ func (c *CNKIDownloader) Search(keyword string, option *searchOption, page int) 
 	}
 
 	if result.PageIndex != page {
-		return nil, fmt.Errorf("Unmatched page number in result (%d %d)", page, result.PageIndex)
+		return nil, fmt.Errorf("查询结果(%d %d)与页码不匹配", page, result.PageIndex)
 	}
 
 	for i := 0; i < len(result.Articles); i++ {
@@ -557,12 +557,12 @@ func (c *CNKIDownloader) SearchNext(pageNum int) (*CNKISearchResult, error) {
 		//
 		// invalid context
 		//
-		return nil, fmt.Errorf("SearchNext should be called after SearchFirst")
+		return nil, fmt.Errorf("SearchNext方法应当在SearchFirst后调用")
 	} else if c.search_cache.current == nil {
 		//
 		//
 		//
-		return nil, fmt.Errorf("Internal unknown error")
+		return nil, fmt.Errorf("未知错误")
 	}
 
 	if c.search_cache.current.Next() != nil {
@@ -595,11 +595,11 @@ func (c *CNKIDownloader) SearchNext(pageNum int) (*CNKISearchResult, error) {
 //
 func (c *CNKIDownloader) SearchPrev() (*CNKISearchResult, error) {
 	if c.search_cache.current == nil {
-		return nil, fmt.Errorf("SearchPrev should be called when you already called SearchNext")
+		return nil, fmt.Errorf("SearchPrev方法应当在SearchNext方法后调用")
 	}
 
 	if c.search_cache.current.Prev() == nil {
-		return nil, fmt.Errorf("No more previous data")
+		return nil, fmt.Errorf("上一页无数据")
 	}
 
 	item := c.search_cache.current.Prev()
@@ -618,7 +618,7 @@ func (c *CNKIDownloader) SearchPrev() (*CNKISearchResult, error) {
 //
 func (c *CNKIDownloader) CurrentPage() (*CNKISearchResult, error) {
 	if c.search_cache.current == nil {
-		return nil, fmt.Errorf("no search data")
+		return nil, fmt.Errorf("无搜索结果")
 	}
 
 	s := c.search_cache.current.Value.(*CNKISearchResult)
@@ -731,7 +731,7 @@ func (c *CNKIDownloader) getFile(url string, filename string, filesize int) erro
 			// check status code
 			//
 			if resp.StatusCode != 200 && resp.StatusCode != 206 {
-				err = fmt.Errorf("Invalid response code(%d) when download (%d-%d)", resp.StatusCode, from, to)
+				err = fmt.Errorf("在下载 (%d-%d) 时返回无效的响应码 (%d)", resp.StatusCode, from, to)
 				if atomic.CompareAndSwapInt32(errorIndicator, 0, 1) {
 					errorReceiver = err
 				}
@@ -819,7 +819,7 @@ func (c *CNKIDownloader) getInfo(url string) (*CNKIArticleInfo, error) {
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Response : %s", resp.Status)
+		return nil, fmt.Errorf("响应码 : %s", resp.Status)
 	}
 
 	//
@@ -853,7 +853,7 @@ func (c *CNKIDownloader) getInfoURL(instance string) (string, error) {
 
 	v := strings.Split(instance, ":")
 	if len(v) != 2 {
-		return "", fmt.Errorf("Invalid instance string %s", instance)
+		return "", fmt.Errorf("无效的 instance 字符串 %s", instance)
 	}
 
 	//
@@ -876,7 +876,7 @@ func (c *CNKIDownloader) getInfoURL(instance string) (string, error) {
 	}
 
 	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("Response : %s", resp.Status)
+		return "", fmt.Errorf("响应码 : %s", resp.Status)
 	}
 
 	//
@@ -900,16 +900,16 @@ func (c *CNKIDownloader) Download(paper *Article) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println("Document info url confirmed")
+	fmt.Println("文档信息URL确认")
 
 	info, err := c.getInfo(infoUrl)
 	if err != nil {
 		return "", err
 	}
-	fmt.Println("Document information confirmed")
+	fmt.Println("文档信息确认")
 
 	if len(info.DownloadUrl) == 0 || len(info.Filename) == 0 {
-		return "", fmt.Errorf("Invalid file information")
+		return "", fmt.Errorf("无效的文档信息")
 	}
 
 	currentDir, err := os.Getwd()
@@ -918,7 +918,7 @@ func (c *CNKIDownloader) Download(paper *Article) (string, error) {
 	}
 	fullName := filepath.Join(currentDir, makeSafeFileName(paper.Information.Title)+".caj")
 
-	fmt.Printf("Downloading... total (%d) bytes\n", info.Size)
+	fmt.Printf("下载中... 共 (%d) bytes\n", info.Size)
 	err = c.getFile(info.DownloadUrl[0], fullName, info.Size)
 	if err != nil {
 		return "", err
@@ -939,7 +939,7 @@ func (c *CNKIDownloader) Download(paper *Article) (string, error) {
 // print a set of articles
 //
 func printArticles(page int, articles []Article) {
-	fmt.Fprintf(color.Output, "\n-----------------------------------------------------------(%s)--\n", color.MagentaString("page:%d", page))
+	fmt.Fprintf(color.Output, "\n-----------------------------------------------------------(%s)--\n", color.MagentaString("页码:%d", page))
 	for id, entry := range articles {
 		source := entry.Information.SourceName
 		if len(source) == 0 {
@@ -950,7 +950,7 @@ func printArticles(page int, articles []Article) {
 			color.WhiteString(entry.Information.Title),
 			color.YellowString("%s", source))
 	}
-	fmt.Fprintf(color.Output, "-----------------------------------------------------------(%s)--\n\n", color.MagentaString("page%d", page))
+	fmt.Fprintf(color.Output, "-----------------------------------------------------------(%s)--\n\n", color.MagentaString("第%d页", page))
 }
 
 //
@@ -964,18 +964,18 @@ func getSearchOpt() *searchOption {
 			for k := min; k <= max; k++ {
 				if k == defaultValue {
 
-					fmt.Fprintf(color.Output, "\t %s: %s (%s)\n", color.CyanString("%d", k), optHints[k], color.GreenString("DEFAULT"))
+					fmt.Fprintf(color.Output, "\t %s: %s (%s)\n", color.CyanString("%d", k), optHints[k], color.GreenString("默认选项"))
 				} else {
 					fmt.Fprintf(color.Output, "\t %s: %s\n", color.CyanString("%d", k), optHints[k])
 				}
 			}
 
-			fmt.Fprintf(color.Output, "$ %s", color.CyanString("select: "))
+			fmt.Fprintf(color.Output, "$ %s", color.CyanString("选项: "))
 			s := getInputString()
 			if len(s) > 0 {
 				selected, err := strconv.ParseInt(s, 16, 32)
 				if err != nil || selected < int64(min) || selected > int64(max) {
-					color.Red("Invalid selection\n")
+					color.Red("无效的选项\n")
 					continue
 				}
 				return int8(selected)
@@ -986,9 +986,9 @@ func getSearchOpt() *searchOption {
 	}
 
 	// now , let the user to choose
-	filter := seletor(SearchBySubject, SearchByKeyword, SearchBySubject, "What's you input means?", searchFilterHints)
-	database := seletor(SearchAllDoc, SearchConference, SearchAllDoc, "Which database you wanna query?", searchRangeHints)
-	order := seletor(OrderByDownloadedTime, OrderBySubject, OrderByDownloadedTime, "How should I sort the result?", searchOrderHints)
+	filter := seletor(SearchBySubject, SearchByKeyword, SearchBySubject, "请选择检索类型", searchFilterHints)
+	database := seletor(SearchAllDoc, SearchConference, SearchAllDoc, "请选择检索库的范围", searchRangeHints)
+	order := seletor(OrderBySubject, OrderByDownloadedTime, OrderBySubject, "请选择结果的排序依据", searchOrderHints)
 
 	opt := &searchOption{
 		filter:  searchFilterDefs[filter],
@@ -1008,7 +1008,7 @@ func getUpdateInfo() (*appUpdateInfo, error) {
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Response : %s", resp.Status)
+		return nil, fmt.Errorf("响应码 : %s", resp.Status)
 	}
 
 	//
@@ -1035,7 +1035,7 @@ func getUpdateInfo() (*appUpdateInfo, error) {
 func update() (allowContinue bool) {
 
 	allowContinue = true
-	fmt.Println("** Checking update information current: ", VersionString)
+	fmt.Println("** 正在检查更新信息，当前版本: ", VersionString)
 
 	//
 	// http query the information
@@ -1073,12 +1073,12 @@ func update() (allowContinue bool) {
 			}
 
 			if info.IsRequired {
-				fmt.Fprintf(color.Output, "** You %s update this version, or you cannot continue to use current program\n", color.RedString("have to"))
+				fmt.Fprintf(color.Output, "** 你 %s 更新到新版本, 否则你将无法继续使用本程序\n", color.RedString("必须"))
 			} else {
-				fmt.Println("** This version is not necessary to be update, but I recommand you guys to update now")
+				fmt.Println("** 这一新版本非必要的更新，但是推荐进行更新")
 			}
 
-			fmt.Printf("** update now? [y/n]: ")
+			fmt.Printf("** 现在进行更新? [y/n]: ")
 			s := getInputString()
 			if strings.ToLower(s) != "y" {
 				//
@@ -1113,11 +1113,11 @@ func update() (allowContinue bool) {
 			}
 
 		} else {
-			fmt.Println("** already is the latest version")
+			fmt.Println("** 已经是最新版本")
 		}
 
 	} else {
-		fmt.Fprintf(color.Output, "** Check %s : %s \n", color.RedString("failure"), err.Error())
+		fmt.Fprintf(color.Output, "** 检查 %s : %s \n", color.RedString("失败"), err.Error())
 	}
 
 	return
@@ -1140,9 +1140,9 @@ func main() {
 	// note
 	//
 	fmt.Println()
-	fmt.Println("** NOTE: if you cannot download any document, maybe the service of")
-	fmt.Println("**       CNKI is unavailable again, in this situation, nothing we")
-	fmt.Println("**       can do but wait, DO NOT open an issue on GitHub, thx")
+	fmt.Println("** NOTE: 如果你无法下载任何文档，")
+	fmt.Println("**       很可能是CNKI的服务器又炸了，")
+	fmt.Println("**       请不要到GitHub上提交Issue,谢谢")
 	fmt.Println("**")
 
 	//
@@ -1162,18 +1162,18 @@ func main() {
 		http_client: &http.Client{},
 	}
 
-	fmt.Printf("** Login...")
+	fmt.Printf("** 登陆中...")
 	err := downloader.Auth()
 	if err != nil {
-		fmt.Fprintf(color.Output, "%s : %s \n", color.RedString("Failure"), err.Error())
+		fmt.Fprintf(color.Output, "%s : %s \n", color.RedString("失败"), err.Error())
 		return
 	} else {
-		fmt.Fprintf(color.Output, "%s\n\n", color.GreenString("Success"))
+		fmt.Fprintf(color.Output, "%s\n\n", color.GreenString("成功"))
 	}
 
 	for {
 
-		fmt.Fprintf(color.Output, "$ %s", color.CyanString("input anything you wanna search: "))
+		fmt.Fprintf(color.Output, "$ %s", color.CyanString("请输入欲查找的内容: "))
 
 		s := getInputString()
 		if len(s) == 0 {
@@ -1187,7 +1187,7 @@ func main() {
 
 		result, err := downloader.SearchFirst(s, opt)
 		if err != nil {
-			fmt.Fprintf(color.Output, "Search '%s' %s (error: %s)\n", s, color.RedString("fail"), err.Error())
+			fmt.Fprintf(color.Output, "搜索 '%s' %s (错误码: %s)\n", s, color.RedString("失败"), err.Error())
 			continue
 		}
 		printArticles(1, result.GetPageData())
@@ -1195,7 +1195,7 @@ func main() {
 		//
 		// tips
 		//
-		fmt.Fprintf(color.Output, "We got (%s) entries in total. (if u don't know how to do next, just type '%s') \n",
+		fmt.Fprintf(color.Output, "检索到 (%s) 个项目. (请输入 '%s' 以获取帮助) \n",
 			color.GreenString("%d", result.GetRecordInfo()), color.RedString("help"))
 
 		for {
@@ -1214,23 +1214,23 @@ func main() {
 			switch strings.ToLower(cmd_parts[0]) {
 			case "help":
 				{
-					fmt.Fprintf(color.Output, "Support follow commands:\n")
-					fmt.Fprintf(color.Output, "\t %s: show page's information\n", color.YellowString("INFO"))
-					fmt.Fprintf(color.Output, "\t %s: turn to next page\n", color.YellowString("NEXT"))
-					fmt.Fprintf(color.Output, "\t %s: turn to previous page\n", color.YellowString("PREV"))
-					fmt.Fprintf(color.Output, "\t  %s: (GET ID), download the specified item in this page, eg: GET 1, GET 14...etc\n", color.YellowString("GET"))
-					fmt.Fprintf(color.Output, "\t %s: (SHOW ID), show the information about specified item, eg: SHOW 2, SHOW 9...etc\n", color.YellowString("SHOW"))
-					fmt.Fprintf(color.Output, "\t%s: break out, and search the other papers\n", color.YellowString("BREAK"))
+					fmt.Fprintf(color.Output, "请使用以下命令进行操作:（不区分大小写）\n")
+					fmt.Fprintf(color.Output, "\t %s: 显示当前检索页面的信息\n", color.YellowString("INFO"))
+					fmt.Fprintf(color.Output, "\t %s: 转到下一页\n", color.YellowString("NEXT"))
+					fmt.Fprintf(color.Output, "\t %s: 转到上一页\n", color.YellowString("PREV"))
+					fmt.Fprintf(color.Output, "\t  %s: (GET ID1 ID2 ID3...), 下载本页中指定ID的文档, 例如: 可使用 GET 1 下载1号文档,GET 1 2 3 同时下载1、2、3号文档...\n", color.YellowString("GET"))
+					fmt.Fprintf(color.Output, "\t %s: (SHOW ID), 现实本页中指定文档的详细信息, 例如: 可使用 SHOW 2 显示2号文档的信息...\n", color.YellowString("SHOW"))
+					fmt.Fprintf(color.Output, "\t%s: 结束当前检索，开始新的检索\n", color.YellowString("BREAK"))
 				}
 			case "info":
 				{
-					color.White("  page size: %d\n page index: %d\ntotal pages: %d\n", psize, pindex, pcount)
+					color.White(" 页面条目: %d\n   页码数: %d\n 总页面数: %d\n", psize, pindex, pcount)
 				}
 			case "next":
 				{
 					next_page, err := downloader.SearchNext(pindex + 1)
 					if err != nil {
-						fmt.Fprintf(color.Output, "Next page is invalid (%s)\n", color.RedString(err.Error()))
+						fmt.Fprintf(color.Output, "下一页不存在 (%s)\n", color.RedString(err.Error()))
 					} else {
 						_, index, _ := next_page.GetPageInfo()
 						printArticles(index, next_page.GetPageData())
@@ -1240,7 +1240,7 @@ func main() {
 				{
 					prev_page, err := downloader.SearchPrev()
 					if err != nil {
-						color.Red("Previous page is invalid")
+						color.Red("上一页不存在")
 					} else {
 						_, index, _ := prev_page.GetPageInfo()
 						printArticles(index, prev_page.GetPageData())
@@ -1250,13 +1250,13 @@ func main() {
 				{
 
 					if len(cmd_parts) < 2 {
-						color.Red("Invalid input")
+						color.Red("输入无效")
 						break
 					}
 
 					id, err := strconv.ParseInt(cmd_parts[1], 10, 32)
 					if err != nil {
-						fmt.Fprintf(color.Output, "Invalid input %s\n", color.RedString(err.Error()))
+						fmt.Fprintf(color.Output, "输入无效 %s\n", color.RedString(err.Error()))
 						break
 					}
 					id--
@@ -1265,16 +1265,16 @@ func main() {
 					entry := entries[id]
 
 					fmt.Println()
-					fmt.Fprintf(color.Output, "*       PAGE: %s\n", color.WhiteString("%d", pindex))
+					fmt.Fprintf(color.Output, "*       页数: %s\n", color.WhiteString("%d", pindex))
 					fmt.Fprintf(color.Output, "*         ID: %s\n", color.WhiteString("%d", id+1))
-					fmt.Fprintf(color.Output, "*      Title: %s\n", color.WhiteString(entry.Information.Title))
-					fmt.Fprintf(color.Output, "*    Created: %s\n", color.WhiteString(entry.Information.CreateTime))
-					fmt.Fprintf(color.Output, "*    Authors: %s\n", color.GreenString(strings.Join(entry.Information.Creator, " ")))
-					fmt.Fprintf(color.Output, "*     Source: %s\n", color.GreenString("%s(%s)", entry.Information.SourceName, entry.Information.SourceAlias))
-					fmt.Fprintf(color.Output, "*       Code: %s\n", color.WhiteString("%s.%s", entry.Information.ClassifyName, entry.Information.ClassifyCode))
-					fmt.Fprintf(color.Output, "*  Reference: %s\n", color.RedString("%d", entry.Information.RefCount))
-					fmt.Fprintf(color.Output, "* Downloaded: %s\n", color.WhiteString("%d", entry.Information.DownloadCount))
-					fmt.Fprintf(color.Output, "*Description: \n")
+					fmt.Fprintf(color.Output, "*       标题: %s\n", color.WhiteString(entry.Information.Title))
+					fmt.Fprintf(color.Output, "*   发表时间: %s\n", color.WhiteString(entry.Information.CreateTime))
+					fmt.Fprintf(color.Output, "*       作者: %s\n", color.GreenString(strings.Join(entry.Information.Creator, " ")))
+					fmt.Fprintf(color.Output, "*       来源: %s\n", color.GreenString("%s(%s)", entry.Information.SourceName, entry.Information.SourceAlias))
+					fmt.Fprintf(color.Output, "*     分类号: %s\n", color.WhiteString("%s.%s", entry.Information.ClassifyName, entry.Information.ClassifyCode))
+					fmt.Fprintf(color.Output, "*       引用: %s\n", color.RedString("%d", entry.Information.RefCount))
+					fmt.Fprintf(color.Output, "*       下载: %s\n", color.WhiteString("%d", entry.Information.DownloadCount))
+					fmt.Fprintf(color.Output, "*       摘要: \n")
 
 					//text := mahonia.NewDecoder("gbk").ConvertString(entry.Information.Description)
 					textSeq := []rune(entry.Information.Description)
@@ -1283,7 +1283,7 @@ func main() {
 						if len(textSeq)-j < 40 {
 							end = len(textSeq) - 1
 						}
-						fmt.Printf("*             %s\n", string(textSeq[j:end]))
+						fmt.Printf("*%s\n", string(textSeq[j:end]))
 						j = end + 1
 					}
 					fmt.Println()
@@ -1292,32 +1292,34 @@ func main() {
 			case "get":
 				{
 					if len(cmd_parts) < 2 {
-						color.Red("Invalid input")
+						color.Red("输入无效")
 						break
 					}
 
-					id, err := strconv.ParseInt(cmd_parts[1], 10, 32)
-					if err != nil {
-						fmt.Fprintf(color.Output, "Invalid input %s\n", color.RedString(err.Error()))
-						break
+					for ii:=1;ii<len(cmd_parts);ii++ { 
+						id, err := strconv.ParseInt(cmd_parts[ii], 10, 32)
+						if err != nil {
+							fmt.Fprintf(color.Output, "输入无效 %s\n", color.RedString(err.Error()))
+							break
+						}
+						id--
+
+						entries := ctx.GetPageData()
+
+						color.White("下载中... %s\n", entries[id].Information.Title)
+						path, err := downloader.Download(&entries[id])
+						if err != nil {
+							fmt.Fprintf(color.Output, "下载失败 %s\n", color.RedString(err.Error()))
+							break
+						}
+
+						fmt.Fprintf(color.Output, "下载成功 (%s) \n", color.GreenString(path))
 					}
-					id--
-
-					entries := ctx.GetPageData()
-
-					color.White("Downloading... %s\n", entries[id].Information.Title)
-					path, err := downloader.Download(&entries[id])
-					if err != nil {
-						fmt.Fprintf(color.Output, "Download failed %s\n", color.RedString(err.Error()))
-						break
-					}
-
-					fmt.Fprintf(color.Output, "Download success (%s) \n", color.GreenString(path))
 				}
 			case "break":
 				{
 					downloader.SearchStop()
-					color.Yellow("Break out.\n")
+					color.Yellow("检索结束.\n")
 					out = true
 				}
 			}
